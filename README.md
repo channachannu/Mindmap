@@ -4,7 +4,7 @@
 
 Secured by **DAF (Dynamic Auth Framework)** — built on the Dynamic Password Protocol (DPP), CompCom 2019, Springer Nature.
 
-**Live demo:** coming soon
+**Live demo:** https://mindmap-io.streamlit.app/
 
 ---
 
