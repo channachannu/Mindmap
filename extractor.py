@@ -1,5 +1,3 @@
-from dotenv import load_dotenv
-load_dotenv()
 """
 extractor.py
 ------------
@@ -21,7 +19,7 @@ import json
 import uuid
 from datetime import datetime
 from pathlib import Path
-import os
+
 from pypdf import PdfReader
 import anthropic
 
@@ -203,9 +201,17 @@ def call_claude(content: str, filename: str, page_count: int) -> dict:
     Send content to Claude and return parsed JSON schema.
     Raises ValueError if response is not valid JSON or schema is malformed.
     """
-    #client = anthropic.Anthropic()
     import os
-    client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    import streamlit as st
+
+    # Streamlit Cloud secrets take priority — .env fallback for local dev
+    try:
+        api_key = st.secrets["ANTHROPIC_API_KEY"]
+    except Exception:
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+
+    client = anthropic.Anthropic(api_key=api_key)
+
     user_prompt = USER_PROMPT_TEMPLATE.format(
         filename=filename,
         page_count=page_count,
@@ -214,7 +220,7 @@ def call_claude(content: str, filename: str, page_count: int) -> dict:
 
     response = client.messages.create(
         model=MODEL,
-        max_tokens=9000,
+        max_tokens=4000,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_prompt}],
     )
