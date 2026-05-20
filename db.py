@@ -12,7 +12,12 @@ from dotenv import load_dotenv
 
 # Load .env before anything tries to read env vars
 load_dotenv()
-
+try:
+    import streamlit as st
+    st.write("URL:", st.secrets.get("SUPABASE_URL", "NOT FOUND"))
+    st.write("KEY length:", len(st.secrets.get("SUPABASE_KEY", "")))
+except Exception as e:
+    pass
 
 @st.cache_resource
 def get_supabase() -> Client:
