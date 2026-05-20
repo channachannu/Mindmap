@@ -150,7 +150,10 @@ if st.session_state.current_map_id:
             for w in schema["warnings"]:
                 st.markdown(f"- {w}")
 
-    base_url  = os.getenv("APP_BASE_URL", "http://localhost:8501")
+    try:
+        base_url = st.secrets["APP_BASE_URL"]
+    except Exception:
+        base_url = os.getenv("APP_BASE_URL", "http://localhost:8501")
     share_url = f"{base_url}/?map_id={map_id}"
     st.markdown(
         f"<div style='font-family:monospace; font-size:12px; color:#555; margin-bottom:16px;'>"
