@@ -895,10 +895,8 @@ function renderBreadcrumb() {
 // ─────────────────────────────────────────────
 
 const themeColors = {
-  strategy: '#E07A5F',
-  design:   '#6B8CAE',
-  planning: '#90BE6D',
-  quality:  '#FF6B6B',
+  // dynamically built from injected themes
+  ...Object.fromEntries(themes.map((t, i) => [t.id, t._color_hex || ['#E07A5F','#6B8CAE','#90BE6D','#FF6B6B','#56CFE1','#C77DFF','#F2CC8F'][i]])),
   ops:      '#56CFE1',
 };
 
@@ -907,7 +905,8 @@ function buildGraphData() {
   const links = [];
 
   // Root
-  nodes.push({ id: 'root', label: 'OM', type: 'root', color: '#C8B97A', r: 34 });
+  const rootLabel = (typeof subjects !== 'undefined' ? subjects : document.title.split(' —')[0]).split(' ').slice(0,2).join(' ');
+  nodes.push({ id: 'root', label: rootLabel, type: 'root', color: '#C8B97A', r: 34 });
 
   // Themes
   themes.forEach(t => {
@@ -993,7 +992,7 @@ function initGraph() {
     .attr('text-anchor', 'middle')
     .attr('dy', d => d.type === 'sub' ? d.r + 12 : 0)
     .text(d => {
-      if (d.type === 'root') return 'OM';
+      if (d.type === 'root') return d.label;
       if (d.type === 'theme') return d.label;
       if (d.type === 'sub') return d.label.length > 18 ? d.label.slice(0, 16) + '…' : d.label;
       return d.label;
@@ -1005,25 +1004,31 @@ function initGraph() {
     link.classed('dimmed', false);
   });
 
-  // Simulation
+  // Simulation — tighter layout, stronger center pull
   const sim = d3.forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d => d.id).distance(d => {
       const src = d.source;
       if (typeof src === 'object') {
-        if (src.type === 'root') return 160;
-        if (src.type === 'theme') return 110;
-        if (src.type === 'sub') return 60;
+        if (src.type === 'root') return 120;
+        if (src.type === 'theme') return 90;
+        if (src.type === 'sub') return 55;
       }
-      return 80;
-    }).strength(0.8))
+      return 60;
+    }).strength(1.2))
     .force('charge', d3.forceManyBody().strength(d => {
-      if (d.type === 'root') return -800;
-      if (d.type === 'theme') return -400;
-      if (d.type === 'sub') return -150;
-      return -60;
+      if (d.type === 'root') return -600;
+      if (d.type === 'theme') return -300;
+      if (d.type === 'sub') return -120;
+      return -50;
     }))
-    .force('center', d3.forceCenter(cx, cy))
-    .force('collision', d3.forceCollide().radius(d => d.r + 18))
+    .force('center', d3.forceCenter(cx, cy).strength(0.8))
+    .force('radial', d3.forceRadial(d => {
+      if (d.type === 'root') return 0;
+      if (d.type === 'theme') return 130;
+      if (d.type === 'sub') return 230;
+      return 310;
+    }, cx, cy).strength(0.6))
+    .force('collision', d3.forceCollide().radius(d => d.r + 12))
     .on('tick', () => {
       link
         .attr('x1', d => d.source.x)
@@ -1066,9 +1071,9 @@ function openPanel(d) {
 
   if (d.type === 'root') {
     content.innerHTML = `
-      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#C8B97A;margin-bottom:8px;">Operations Management</div>
-      <div style="font-size:12px;color:#666;font-family:'DM Mono',monospace;margin-bottom:20px;">MBAZG526 · 15 Lectures · 5 Themes · 19 Sub-clusters</div>
-      <div style="font-size:13px;color:#AAA;line-height:1.7;">The study of how organisations design, operate, and improve the systems used to create and deliver products and services. Click any node to explore.</div>
+      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#C8B97A;margin-bottom:8px;">{{SUBJECT}}</div>
+      <div style="font-size:12px;color:#666;font-family:'DM Mono',monospace;margin-bottom:20px;">{{META}}</div>
+      <div style="font-size:13px;color:#AAA;line-height:1.7;">${themes.length} themes · ${lectures.length} lectures. Click any node to explore.</div>
     `;
     return;
   }
