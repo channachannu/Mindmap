@@ -26,7 +26,7 @@ import anthropic
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
-MAX_CONTENT_CHARS = 12000   # ~3k tokens — enough for 8-15 lectures
+MAX_CONTENT_CHARS = 9000   # ~3k tokens — enough for 8-15 lectures
 MODEL             = "claude-sonnet-4-5"
 
 
@@ -220,7 +220,7 @@ def call_claude(content: str, filename: str, page_count: int) -> dict:
 
     response = client.messages.create(
         model=MODEL,
-        max_tokens=4000,
+        max_tokens=9000,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_prompt}],
     )
